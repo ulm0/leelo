@@ -1,0 +1,201 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id           String   @id @default(cuid())
+    username     String   @unique
+    email        String?  @unique
+    password     String? // nullable for OIDC users
+    isAdmin      Boolean  @default(false)
+    useGravatar  Boolean  @default(false)
+    identiconUrl String? // Path to generated identicon
+    oidcSub      String?  @unique // OIDC subject identifier
+    oidcProvider String? // OIDC provider name
+    
+    // Two-factor authentication
+    totpSecret   String? // TOTP secret key
+    totpEnabled  Boolean  @default(false)
+    backupCodes  String? // JSON array of backup codes
+    
+    // Reading preferences
+    readingFont  String?  @default("inter") // Font family for reading
+    customFontUrl String? // URL to custom uploaded font file
+    
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    articles Article[]
+    tags     Tag[]
+    passkeys Passkey[]
+
+    // Invitation relations
+    sentInvitations Invitation[] @relation("InvitationSender")
+    usedInvitation  Invitation?  @relation("InvitationUsedBy")
+
+    @@map("users")
+}
+
+model Article {
+    id               String    @id @default(cuid())
+    url              String
+    title            String
+    author           String?
+    excerpt          String?
+    content          String? // cleaned HTML content
+    originalHtml     String? // original HTML for fallback
+    wordCount        Int?
+    readingTime      Int? // in minutes
+    publishedAt      DateTime?
+    favicon          String? // URL to favicon
+    image            String? // featured image URL
+    isRead           Boolean   @default(false)
+    isArchived       Boolean   @default(false)
+    isFavorite       Boolean   @default(false)
+    extractionStatus String    @default("pending") // pending, extracting, completed, failed
+    extractionError  String? // error message if extraction failed
+    createdAt        DateTime  @default(now())
+    updatedAt        DateTime  @updatedAt
+
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    tags ArticleTag[]
+
+    @@map("articles")
+}
+
+model Tag {
+    id        String   @id @default(cuid())
+    name      String
+    color     String? // hex color for tag
+    createdAt DateTime @default(now())
+
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    articles ArticleTag[]
+
+    @@unique([name, userId])
+    @@map("tags")
+}
+
+model ArticleTag {
+    articleId String
+    tagId     String
+
+    article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+    tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+    @@id([articleId, tagId])
+    @@map("article_tags")
+}
+
+model QueueJob {
+    id          String    @id @default(cuid())
+    type        String // job type: 'extract-article', 'optimize-image', etc.
+    data        String // JSON string of job data
+    status      String    @default("pending") // pending, processing, completed, failed
+    attempts    Int       @default(0)
+    maxAttempts Int       @default(3)
+    error       String? // error message if failed
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    processedAt DateTime?
+
+    @@map("queue_jobs")
+}
+
+model AppConfig {
+    id    String @id @default("config")
+    key   String @unique
+    value String
+
+    @@map("app_config")
+}
+
+model OIDCProvider {
+    id           String   @id @default(cuid())
+    name         String   @unique // e.g., "google", "github", "microsoft"
+    displayName  String // e.g., "Google", "GitHub", "Microsoft"
+    clientId     String
+    clientSecret String
+    issuerUrl    String // e.g., "https://accounts.google.com"
+    scopes       String   @default("openid email profile") // Space-separated scopes
+    enabled      Boolean  @default(false)
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+
+    @@map("oidc_providers")
+}
+
+model EmailConfig {
+    id        String   @id @default("default")
+    host      String
+    port      Int
+    secure    Boolean  @default(true) // Use TLS/SSL
+    username  String
+    password  String
+    fromName  String
+    fromEmail String
+    enabled   Boolean  @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("email_config")
+}
+
+model SystemConfig {
+    id                   String   @id @default("default")
+    baseUrl              String? // Base URL for OIDC callbacks (e.g., https://leelo.example.com)
+    registrationEnabled  Boolean  @default(true) // Allow new user registration
+    oidcRegistrationOnly Boolean  @default(false) // Only allow OIDC registration when registration is enabled
+    siteName             String   @default("Leelo")
+    siteDescription      String   @default("Your personal read-it-whenever app")
+    createdAt            DateTime @default(now())
+    updatedAt            DateTime @updatedAt
+
+    @@map("system_config")
+}
+
+model Passkey {
+    id           String   @id @default(cuid())
+    name         String   // User-friendly name for the passkey
+    credentialId String   @unique // Base64URL encoded credential ID
+    publicKey    String   // Base64URL encoded public key
+    signCount    BigInt   @default(0) // Signature counter
+    transports   String?  // JSON array of supported transports
+    createdAt    DateTime @default(now())
+    lastUsedAt   DateTime @updatedAt
+
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@map("passkeys")
+}
+
+model Invitation {
+    id        String    @id @default(cuid())
+    email     String
+    token     String    @unique
+    invitedBy String // user ID who sent the invitation
+    expiresAt DateTime
+    used      Boolean   @default(false)
+    usedAt    DateTime?
+    usedBy    String?   @unique // user ID who used the invitation (unique since one user can only use one invitation)
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    invitedByUser User  @relation("InvitationSender", fields: [invitedBy], references: [id], onDelete: Cascade)
+    usedByUser    User? @relation("InvitationUsedBy", fields: [usedBy], references: [id], onDelete: SetNull)
+
+    @@map("invitations")
+}

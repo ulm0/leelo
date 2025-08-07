@@ -1,0 +1,60 @@
+# Testing values for Leelo
+replicaCount: 1
+
+# Deployment strategy for testing (Recreate for faster deployments)
+deployment:
+  strategy:
+    type: "Recreate" # Faster for testing environments
+
+image:
+  repository: ghcr.io/ulm0/leelo
+  pullPolicy: IfNotPresent
+
+persistence:
+  enabled: true
+  type: "emptyDir"
+  emptyDir: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+env:
+  NODE_ENV: production
+  DATABASE_URL: file:/data/leelo.db
+  ASSETS_PATH: /data/assets
+  FONTS_PATH: /data/fonts
+  JWT_SECRET: test-secret-key
+  ADMIN_USERNAME: admin
+  ADMIN_PASSWORD: admin
+  BASE_URL: http://localhost:3000
+
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3 

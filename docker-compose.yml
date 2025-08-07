@@ -1,0 +1,45 @@
+services:
+  leelo:
+    build: .
+    container_name: leelo-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - leelo-data:/data
+      - leelo-fonts:/data/fonts
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/data/leelo.db
+      - ASSETS_PATH=/data/assets
+      - FONTS_PATH=/data/fonts
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - BASE_URL=${BASE_URL:-http://localhost:3000}
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - leelo-network
+
+volumes:
+  leelo-data:
+    driver: local
+  leelo-fonts:
+    driver: local
+
+networks:
+  leelo-network:
+    driver: bridge

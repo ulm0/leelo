@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src/server",
+    "outDir": "./dist",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "declaration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node"]
+  },
+  "include": [
+    "src/server/**/*",
+    "prisma/schema.prisma"
+  ],
+  "exclude": [
+    "src/client",
+    "node_modules",
+    "dist"
+  ]
+}

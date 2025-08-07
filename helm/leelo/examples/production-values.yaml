@@ -1,0 +1,79 @@
+# Production values for Leelo
+replicaCount: 2
+
+# Deployment strategy for production (RollingUpdate for zero-downtime deployments)
+deployment:
+  strategy:
+    type: "RollingUpdate"
+    rollingUpdate:
+      maxSurge: "25%"
+      maxUnavailable: "0%" # Ensures zero downtime
+
+image:
+  repository: ghcr.io/ulm0/leelo
+  pullPolicy: Always
+
+persistence:
+  enabled: true
+  type: "pvc"
+  pvc:
+    storageClass: "fast-ssd"
+    accessMode: ReadWriteOnce
+    size: 10Gi
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: leelo.yourdomain.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: leelo-tls
+      hosts:
+        - leelo.yourdomain.com
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+env:
+  NODE_ENV: production
+  DATABASE_URL: file:/data/leelo.db
+  ASSETS_PATH: /data/assets
+  FONTS_PATH: /data/fonts
+  JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+  ADMIN_USERNAME: admin
+  ADMIN_PASSWORD: your-secure-admin-password
+  BASE_URL: https://leelo.yourdomain.com
+
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3 
