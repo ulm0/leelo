@@ -120,11 +120,16 @@ export function extractVideoInfo(url: string): VideoInfo {
     const urlObj = new URL(url)
     const hostname = urlObj.hostname.toLowerCase()
     
+    // Helper function to safely check if hostname ends with a specific domain
+    const isExactDomain = (hostname: string, domain: string): boolean => {
+      return hostname === domain || hostname.endsWith('.' + domain)
+    }
+    
     // YouTube
-    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+    if (isExactDomain(hostname, 'youtube.com') || isExactDomain(hostname, 'youtu.be')) {
       let videoId: string | null = null
       
-      if (hostname.includes('youtu.be')) {
+      if (isExactDomain(hostname, 'youtu.be')) {
         // Short URL format: https://youtu.be/VIDEO_ID
         videoId = urlObj.pathname.slice(1)
       } else if (urlObj.pathname === '/watch') {
@@ -145,7 +150,7 @@ export function extractVideoInfo(url: string): VideoInfo {
     }
     
     // Vimeo
-    if (hostname.includes('vimeo.com')) {
+    if (isExactDomain(hostname, 'vimeo.com')) {
       const videoId = urlObj.pathname.slice(1) // Remove leading slash
       if (videoId && /^\d+$/.test(videoId)) {
         return {
@@ -157,7 +162,7 @@ export function extractVideoInfo(url: string): VideoInfo {
     }
     
     // Dailymotion
-    if (hostname.includes('dailymotion.com')) {
+    if (isExactDomain(hostname, 'dailymotion.com')) {
       const pathParts = urlObj.pathname.split('/')
       const videoId = pathParts[pathParts.length - 1]
       if (videoId && videoId !== 'video') {
@@ -170,7 +175,7 @@ export function extractVideoInfo(url: string): VideoInfo {
     }
     
     // Twitch
-    if (hostname.includes('twitch.tv')) {
+    if (isExactDomain(hostname, 'twitch.tv')) {
       const pathParts = urlObj.pathname.split('/')
       if (pathParts[1] === 'videos') {
         const videoId = pathParts[2]

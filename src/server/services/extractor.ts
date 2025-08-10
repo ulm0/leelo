@@ -26,6 +26,53 @@ export class ContentExtractor {
     this.assetsPath = assetsPath || path.join(process.cwd(), 'data', 'assets');
   }
 
+  /**
+   * Safely sanitizes HTML content by removing all HTML tags and entities
+   * This prevents HTML injection vulnerabilities
+   */
+  private sanitizeHtml(html: string): string {
+    if (!html || typeof html !== 'string') {
+      return '';
+    }
+    
+    // Remove HTML tags
+    let sanitized = html.replace(/<[^>]*>/g, '');
+    
+    // Decode common HTML entities
+    const htmlEntities: Record<string, string> = {
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&apos;': "'",
+      '&nbsp;': ' ',
+      '&copy;': '©',
+      '&reg;': '®',
+      '&trade;': '™',
+      '&hellip;': '...',
+      '&mdash;': '—',
+      '&ndash;': '–',
+      '&lsquo;': '\u2018', // Left single quotation mark
+      '&rsquo;': '\u2019', // Right single quotation mark
+      '&ldquo;': '\u201C', // Left double quotation mark
+      '&rdquo;': '\u201D', // Right double quotation mark
+    };
+    
+    // Replace HTML entities
+    for (const [entity, replacement] of Object.entries(htmlEntities)) {
+      sanitized = sanitized.replace(new RegExp(entity, 'gi'), replacement);
+    }
+    
+    // Remove any remaining HTML entities (catch-all)
+    sanitized = sanitized.replace(/&#?[a-zA-Z0-9]+;/g, '');
+    
+    // Normalize whitespace
+    sanitized = sanitized.replace(/\s+/g, ' ').trim();
+    
+    return sanitized;
+  }
+
   async extractFromUrl(url: string): Promise<ExtractedArticle> {
     try {
       // Fetch the HTML content
@@ -86,7 +133,7 @@ export class ContentExtractor {
       const image = await this.extractAndOptimizeImage(document, baseUrl);
 
       // Calculate reading time (assuming 200 words per minute)
-      const wordCount = this.countWords(article?.textContent || content.replace(/<[^>]*>/g, ''));
+      const wordCount = this.countWords(article?.textContent || this.sanitizeHtml(content));
       const readingTime = Math.ceil(wordCount / 200);
 
       // Process images in content
@@ -157,8 +204,9 @@ export class ContentExtractor {
   }
 
   private extractExcerpt(content: string): string | undefined {
-    // Create a plain text version and take first 200 characters
-    const plainText = content.replace(/<[^>]*>/g, '').trim();
+    // Safely sanitize HTML content to prevent injection vulnerabilities
+    const plainText = this.sanitizeHtml(content);
+    
     if (plainText.length > 200) {
       return plainText.substring(0, 200) + '...';
     }
