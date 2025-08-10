@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import multipart from '@fastify/multipart';
 import staticFiles from '@fastify/static';
+import rateLimit from '@fastify/rate-limit';
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -47,6 +48,24 @@ await server.register(multipart);
 
 // Configure security headers
 await configureSecurityHeaders(server);
+
+// Configure rate limiting
+await server.register(rateLimit, {
+  global: true,
+  max: 100, // Default: 100 requests per window
+  timeWindow: '1 minute', // Default window
+  allowList: ['127.0.0.1', '::1'], // Allow localhost
+  errorResponseBuilder: () => ({
+    code: 429,
+    error: 'Too Many Requests',
+    message: 'Rate limit exceeded, please try again later'
+  }),
+  // Custom rate limit for specific routes
+  keyGenerator: (request) => {
+    // Use user ID if authenticated, otherwise use IP
+    return request.user?.userId || request.ip;
+  }
+});
 
 // Serve frontend static files
 const projectRoot = path.resolve(__dirname, '..', '..');
