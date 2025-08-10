@@ -6,7 +6,6 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { TOTPService } from '../services/totp.js'
 import { PasskeyService } from '../services/passkey.js'
-// import { RateLimitService } from '../services/rateLimit.js'; // Remove custom rate limit service
 import rateLimit from '@fastify/rate-limit';
 // Global type extension for OIDC state storage
 declare global {
@@ -41,21 +40,6 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   };
   // Login
   fastify.post('/login', {
-    // Remove custom preHandler for rate limiting, rely on @fastify/rate-limit
-    // preHandler: async (request, reply) => {
-    //   // Use RateLimitService to enforce rate limiting for login attempts
-    //   // Allow max 5 requests per 15 minutes per IP
-    //   await RateLimitService.check(request, reply, {
-    //     key: request.ip,
-    //     max: 5,
-    //     timeWindow: 15 * 60, // seconds
-    //     errorResponse: {
-    //       code: 429,
-    //       error: 'Too Many Login Attempts',
-    //       message: 'Too many login attempts. Please wait 15 minutes before trying again.'
-    //     }
-    //   });
-    // },
     config: {
       rateLimit: {
         max: 5,
