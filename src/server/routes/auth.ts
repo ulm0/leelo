@@ -940,39 +940,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   })
 
   // Passkey authentication for login (no auth required)
-  fastify.post('/passkey/login-options', {
-    preHandler: [
-      async (request, reply) => {
-        // Apply rate limiting for passkey operations
-        const rateLimitConfig = RateLimitService.getPasskeyRateLimitConfig();
-        const key = request.ip; // Use IP for unauthenticated requests
-        
-        // Simple in-memory rate limiting for this specific endpoint
-        const now = Date.now();
-        const windowMs = 60 * 60 * 1000; // 1 hour in milliseconds
-        
-        if (!fastify.rateLimitStore) {
-          fastify.rateLimitStore = new Map();
-        }
-        
-        const userKey = `passkey_login_options:${key}`;
-        const userData = fastify.rateLimitStore.get(userKey);
-        
-        if (userData && (now - userData.timestamp) < windowMs) {
-          if (userData.count >= rateLimitConfig.max) {
-            return reply.code(429).send({
-              code: 429,
-              error: 'Too Many Passkey Operations',
-              message: 'Too many passkey operations. Please wait 1 hour before trying again.'
-            });
-          }
-          userData.count++;
-        } else {
-          fastify.rateLimitStore.set(userKey, { count: 1, timestamp: now });
-        }
-      }
-    ]
-  }, async (request, reply) => {
+  fastify.post('/passkey/login-options', async (request, reply) => {
     try {
       // Get all users with passkeys
       const usersWithPasskeys = await fastify.prisma.user.findMany({
@@ -1006,39 +974,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     }
   })
 
-  fastify.post('/passkey/login', {
-    preHandler: [
-      async (request, reply) => {
-        // Apply rate limiting for passkey authentication
-        const rateLimitConfig = RateLimitService.getAuthRateLimitConfig();
-        const key = request.ip; // Use IP for unauthenticated requests
-        
-        // Simple in-memory rate limiting for this specific endpoint
-        const now = Date.now();
-        const windowMs = 15 * 60 * 1000; // 15 minutes in milliseconds
-        
-        if (!fastify.rateLimitStore) {
-          fastify.rateLimitStore = new Map();
-        }
-        
-        const userKey = `passkey_login:${key}`;
-        const userData = fastify.rateLimitStore.get(userKey);
-        
-        if (userData && (now - userData.timestamp) < windowMs) {
-          if (userData.count >= rateLimitConfig.max) {
-            return reply.code(429).send({
-              code: 429,
-              error: 'Too Many Authentication Attempts',
-              message: 'Too many authentication attempts. Please wait 15 minutes before trying again.'
-            });
-          }
-          userData.count++;
-        } else {
-          fastify.rateLimitStore.set(userKey, { count: 1, timestamp: now });
-        }
-      }
-    ]
-  }, async (request, reply) => {
+  fastify.post('/passkey/login', async (request, reply) => {
     try {
       const { response } = z.object({
         response: z.any()

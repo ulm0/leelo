@@ -52,7 +52,9 @@ export class ContentExtractor {
     let sanitized = html;
     
     // Step 1: Remove all HTML-like content comprehensively
-    // First pass: remove complete tags
+    // Use a more aggressive approach to ensure no HTML remains
+    
+    // First pass: remove complete tags and any content between them
     sanitized = sanitized.replace(/<[^>]*>/g, '');
     
     // Second pass: remove any remaining content that starts with <
@@ -61,7 +63,7 @@ export class ContentExtractor {
     // Third pass: remove any remaining content that ends with >
     sanitized = sanitized.replace(/[^<]*>/g, '');
     
-    // Fourth pass: remove any remaining angle brackets
+    // Fourth pass: remove any remaining angle brackets completely
     sanitized = sanitized.replace(/[<>]/g, '');
     
     // Step 2: Decode common HTML entities safely
@@ -79,13 +81,81 @@ export class ContentExtractor {
       '&hellip;': '...',
       '&mdash;': '—',
       '&ndash;': '–',
-      '&lsquo;': '\u2018', // Left single quotation mark
-      '&rsquo;': '\u2019', // Right single quotation mark
-      '&ldquo;': '\u201C', // Left double quotation mark
-      '&rdquo;': '\u201D', // Right double quotation mark
+      '&lsquo;': '\u2018',
+      '&rsquo;': '\u2019',
+      '&ldquo;': '\u201C',
+      '&rdquo;': '\u201D',
+      '&bull;': '•',
+      '&prime;': '′',
+      '&Prime;': '″',
+      '&oline;': '‾',
+      '&frasl;': '/',
+      '&weierp;': '℘',
+      '&image;': 'ℑ',
+      '&real;': 'ℜ',
+      '&alefsym;': 'ℵ',
+      '&larr;': '←',
+      '&uarr;': '↑',
+      '&rarr;': '→',
+      '&darr;': '↓',
+      '&harr;': '↔',
+      '&crarr;': '↵',
+      '&lArr;': '⇐',
+      '&uArr;': '⇑',
+      '&rArr;': '⇒',
+      '&dArr;': '⇓',
+      '&hArr;': '⇔',
+      '&forall;': '∀',
+      '&part;': '∂',
+      '&exist;': '∃',
+      '&empty;': '∅',
+      '&nabla;': '∇',
+      '&isin;': '∈',
+      '&notin;': '∉',
+      '&ni;': '∋',
+      '&prod;': '∏',
+      '&sum;': '∑',
+      '&minus;': '−',
+      '&lowast;': '∗',
+      '&radic;': '√',
+      '&prop;': '∝',
+      '&infin;': '∞',
+      '&ang;': '∠',
+      '&and;': '∧',
+      '&or;': '∨',
+      '&cap;': '∩',
+      '&cup;': '∪',
+      '&int;': '∫',
+      '&there4;': '∴',
+      '&sim;': '∼',
+      '&cong;': '≅',
+      '&asymp;': '≈',
+      '&ne;': '≠',
+      '&equiv;': '≡',
+      '&le;': '≤',
+      '&ge;': '≥',
+      '&sub;': '⊂',
+      '&sup;': '⊃',
+      '&nsub;': '⊄',
+      '&sube;': '⊆',
+      '&supe;': '⊇',
+      '&oplus;': '⊕',
+      '&otimes;': '⊗',
+      '&perp;': '⊥',
+      '&sdot;': '⋅',
+      '&lceil;': '⌈',
+      '&rceil;': '⌉',
+      '&lfloor;': '⌊',
+      '&rfloor;': '⌋',
+      '&lang;': '〈',
+      '&rang;': '〉',
+      '&loz;': '◊',
+      '&spades;': '♠',
+      '&clubs;': '♣',
+      '&hearts;': '♥',
+      '&diams;': '♦'
     };
     
-    // Replace HTML entities
     for (const [entity, replacement] of Object.entries(htmlEntities)) {
       sanitized = sanitized.replace(new RegExp(entity, 'gi'), replacement);
     }
@@ -99,7 +169,13 @@ export class ContentExtractor {
     sanitized = sanitized.replace(/vbscript:/gi, ''); // Remove vbscript: protocol
     sanitized = sanitized.replace(/on\w+\s*=/gi, ''); // Remove event handlers like onclick=
     
-    // Step 5: Normalize whitespace and clean up
+    // Step 5: Apply final cleanup to ensure no HTML-like content remains
+    // Remove any remaining content that could be interpreted as HTML
+    sanitized = sanitized.replace(/<[^>]*/g, ''); // Remove any remaining <
+    sanitized = sanitized.replace(/[^<]*>/g, ''); // Remove any remaining >
+    sanitized = sanitized.replace(/[<>]/g, ''); // Remove any remaining angle brackets
+    
+    // Step 6: Normalize whitespace and clean up
     sanitized = sanitized.replace(/\s+/g, ' ').trim();
     
     return sanitized;
