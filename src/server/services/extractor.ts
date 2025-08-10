@@ -177,7 +177,11 @@ export class ContentExtractor {
     sanitized = sanitized.replace(/javascript:/gi, ''); // Remove javascript: protocol
     sanitized = sanitized.replace(/data:/gi, ''); // Remove data: protocol
     sanitized = sanitized.replace(/vbscript:/gi, ''); // Remove vbscript: protocol
-    sanitized = sanitized.replace(/on\w+\s*=/gi, ''); // Remove event handlers like onclick=
+    // Remove event handlers like onclick=, onerror=, etc. (repeat until gone)
+    do {
+      previousSanitized = sanitized;
+      sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+    } while (sanitized !== previousSanitized);
     
     // Step 5: Apply final cleanup to ensure no HTML-like content remains
     // Remove any remaining content that could be interpreted as HTML
