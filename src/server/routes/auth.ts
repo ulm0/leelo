@@ -6,8 +6,8 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { TOTPService } from '../services/totp.js'
 import { PasskeyService } from '../services/passkey.js'
-import { RateLimitService } from '../services/rateLimit.js';
-
+// import { RateLimitService } from '../services/rateLimit.js'; // Remove custom rate limit service
+import rateLimit from '@fastify/rate-limit';
 // Global type extension for OIDC state storage
 declare global {
   var oidcStates: Map<string, { providerId: string; timestamp: number }> | undefined;
@@ -26,6 +26,8 @@ const registerSchema = z.object({
 });
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
+  // Register rate limit plugin
+  await fastify.register(rateLimit);
   // Helper function to get base URL from system config or environment
   const getBaseUrl = async (request: any) => {
     const systemConfig = await fastify.prisma.systemConfig.findUnique({
@@ -39,20 +41,21 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   };
   // Login
   fastify.post('/login', {
-    preHandler: async (request, reply) => {
-      // Use RateLimitService to enforce rate limiting for login attempts
-      // Allow max 5 requests per 15 minutes per IP
-      await RateLimitService.check(request, reply, {
-        key: request.ip,
-        max: 5,
-        timeWindow: 15 * 60, // seconds
-        errorResponse: {
-          code: 429,
-          error: 'Too Many Login Attempts',
-          message: 'Too many login attempts. Please wait 15 minutes before trying again.'
-        }
-      });
-    },
+    // Remove custom preHandler for rate limiting, rely on @fastify/rate-limit
+    // preHandler: async (request, reply) => {
+    //   // Use RateLimitService to enforce rate limiting for login attempts
+    //   // Allow max 5 requests per 15 minutes per IP
+    //   await RateLimitService.check(request, reply, {
+    //     key: request.ip,
+    //     max: 5,
+    //     timeWindow: 15 * 60, // seconds
+    //     errorResponse: {
+    //       code: 429,
+    //       error: 'Too Many Login Attempts',
+    //       message: 'Too many login attempts. Please wait 15 minutes before trying again.'
+    //     }
+    //   });
+    // },
     config: {
       rateLimit: {
         max: 5,
