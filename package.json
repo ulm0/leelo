@@ -5,9 +5,9 @@
   "type": "module",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "npm run db:setup && concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev": "npm run db:setup && npm run build:client && concurrently \"npm run dev:server\" \"npm run watch:client\"",
     "dev:server": "tsx watch src/server/server.ts",
-    "dev:client": "vite",
+    "watch:client": "vite build --watch",
     "build": "npm run build:client && npm run build:server",
     "build:client": "tsc -p tsconfig.client.json && vite build",
     "build:server": "tsc -p tsconfig.server.json",
