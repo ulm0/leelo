@@ -366,6 +366,17 @@ async function adminRoutes(fastify: FastifyInstance) {
   // Test email configuration
   fastify.post('/email-config/test', {
     preHandler: [fastify.authenticate, requireAdmin],
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Email Test Attempts',
+          message: 'Too many email test attempts. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request: any, reply) => {
     const config = await fastify.prisma.emailConfig.findUnique({
       where: { id: 'default' },
@@ -396,6 +407,17 @@ async function adminRoutes(fastify: FastifyInstance) {
   // Send test email
   fastify.post('/email-config/test-send', {
     preHandler: [fastify.authenticate, requireAdmin],
+    config: {
+      rateLimit: {
+        max: 3,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Test Email Sends',
+          message: 'Too many test email sends. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request: any, reply) => {
     const { email } = request.body;
 

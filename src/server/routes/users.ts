@@ -316,6 +316,17 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
   // Upload custom font
   fastify.post('/upload-font', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Font Uploads',
+          message: 'Too many font uploads. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const userId = request.user.userId;

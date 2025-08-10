@@ -49,9 +49,9 @@ await server.register(multipart);
 // Configure security headers
 await configureSecurityHeaders(server);
 
-// Configure rate limiting
+// Rate limiting configuration
 await server.register(rateLimit, {
-  global: true,
+  global: false, // Don't apply globally, we'll apply per-route
   max: 100, // Default: 100 requests per window
   timeWindow: '1 minute', // Default window
   allowList: ['127.0.0.1', '::1'], // Allow localhost
@@ -60,9 +60,7 @@ await server.register(rateLimit, {
     error: 'Too Many Requests',
     message: 'Rate limit exceeded, please try again later'
   }),
-  // Custom rate limit for specific routes
   keyGenerator: (request) => {
-    // Use user ID if authenticated, otherwise use IP
     return request.user?.userId || request.ip;
   }
 });

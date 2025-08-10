@@ -38,7 +38,19 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
            `${request.protocol}://${request.headers.host}`;
   };
   // Login
-  fastify.post('/login', async (request, reply) => {
+  fastify.post('/login', {
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '15 minutes',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Login Attempts',
+          message: 'Too many login attempts. Please wait 15 minutes before trying again.'
+        })
+      }
+    }
+  }, async (request, reply) => {
     try {
       const { username, password } = loginSchema.parse(request.body);
 
@@ -726,6 +738,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/totp/verify', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '15 minutes',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many TOTP Attempts',
+          message: 'Too many TOTP verification attempts. Please wait 15 minutes before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const { token } = z.object({ token: z.string() }).parse(request.body)
@@ -781,6 +804,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/totp/disable', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 3,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many TOTP Disable Attempts',
+          message: 'Too many TOTP disable attempts. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const { token } = z.object({ token: z.string() }).parse(request.body)
@@ -839,6 +873,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/totp/backup-verify', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '15 minutes',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Backup Code Attempts',
+          message: 'Too many backup code attempts. Please wait 15 minutes before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const { code } = z.object({ code: z.string() }).parse(request.body)
@@ -875,6 +920,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   // Passkey routes
   fastify.post('/passkey/register-options', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Passkey Registration Attempts',
+          message: 'Too many passkey registration attempts. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const userId = request.user.userId
@@ -901,6 +957,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/passkey/register', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Passkey Registration Attempts',
+          message: 'Too many passkey registration attempts. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const { response, name } = z.object({
@@ -940,7 +1007,19 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   })
 
   // Passkey authentication for login (no auth required)
-  fastify.post('/passkey/login-options', async (request, reply) => {
+  fastify.post('/passkey/login-options', {
+    config: {
+      rateLimit: {
+        max: 20,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Passkey Login Attempts',
+          message: 'Too many passkey login attempts. Please wait 1 hour before trying again.'
+        })
+      }
+    }
+  }, async (request, reply) => {
     try {
       // Get all users with passkeys
       const usersWithPasskeys = await fastify.prisma.user.findMany({
@@ -974,7 +1053,19 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     }
   })
 
-  fastify.post('/passkey/login', async (request, reply) => {
+  fastify.post('/passkey/login', {
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '15 minutes',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Passkey Login Attempts',
+          message: 'Too many passkey login attempts. Please wait 15 minutes before trying again.'
+        })
+      }
+    }
+  }, async (request, reply) => {
     try {
       const { response } = z.object({
         response: z.any()
@@ -1026,6 +1117,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/passkey/authenticate-options', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 20,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Passkey Authentication Attempts',
+          message: 'Too many passkey authentication attempts. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const userId = request.user.userId
@@ -1044,6 +1146,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/passkey/authenticate', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '15 minutes',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Passkey Authentication Attempts',
+          message: 'Too many passkey authentication attempts. Please wait 15 minutes before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const { response } = z.object({
@@ -1071,6 +1184,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.get('/passkey/list', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 30,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Passkey List Requests',
+          message: 'Too many passkey list requests. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const userId = request.user.userId
@@ -1093,6 +1217,17 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.delete('/passkey/:id', {
     preHandler: [fastify.authenticate],
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Passkey Deletion Attempts',
+          message: 'Too many passkey deletion attempts. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string }
