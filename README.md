@@ -1,6 +1,6 @@
-# Leelo - A Self-Hosted Read-It-Later PWA
+# Leelo - A Self-Hosted Read-It-Whenever PWA
 
-A modern, self-hosted read-it-later application with a unified backend and frontend architecture. Save articles, organize them with tags, and read them in a clean, distraction-free interface.
+A modern, self-hosted read-it-whenever application with a unified backend and frontend architecture. Save articles, organize them with tags, and read them in a clean, distraction-free interface.
 
 ## Features
 
