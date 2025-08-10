@@ -339,6 +339,17 @@ async function adminRoutes(fastify: FastifyInstance) {
   // Create or update email configuration
   fastify.post('/email-config', {
     preHandler: [fastify.authenticate, requireAdmin],
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '1 hour',
+        errorResponseBuilder: () => ({
+          code: 429,
+          error: 'Too Many Email Config Updates',
+          message: 'Too many email config update attempts. Please wait 1 hour before trying again.'
+        })
+      }
+    }
   }, async (request: any, reply) => {
     try {
       const data = emailConfigSchema.parse(request.body);
