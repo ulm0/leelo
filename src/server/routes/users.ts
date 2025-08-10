@@ -45,7 +45,7 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
       user.identiconUrl = identiconDataUri;
     }
 
-    console.log('👤 Profile - User data:', { id: user?.id, username: user?.username, totpEnabled: user?.totpEnabled })
+    console.log('👤 Profile - User data:', { id: user?.id, totpEnabled: user?.totpEnabled })
 
     return { user };
   });

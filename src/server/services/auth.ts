@@ -45,7 +45,7 @@ export async function createDefaultAdmin(prisma: PrismaClient) {
       console.error('Failed to update admin user for identicon:', error);
     }
 
-    console.log(`✅ Default admin user created: ${username}`);
+    console.log('✅ Default admin user created successfully');
   } catch (error) {
     console.error('Failed to create default admin user:', error);
   }

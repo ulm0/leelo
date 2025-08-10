@@ -68,7 +68,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       // Check if TOTP is enabled
-      console.log('🔐 Login - User TOTP status:', { username: user.username, totpEnabled: user.totpEnabled })
+      console.log('🔐 Login - User TOTP status:', { totpEnabled: user.totpEnabled })
       if (user.totpEnabled) {
         return reply.code(200).send({ 
           requiresTOTP: true,
@@ -310,7 +310,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       user.identiconUrl = identiconDataUri;
     }
 
-    console.log('✅ /api/auth/me - User found:', user ? { id: user.id, username: user.username } : 'null');
+    console.log('✅ /api/auth/me - User found:', user ? { id: user.id } : 'null');
 
     return { user };
   });
@@ -480,17 +480,9 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         redirect_uri: redirectUri,
       });
 
-      console.log('Token exchange request:', {
-        endpoint: config.token_endpoint,
-        params: {
-          grant_type: 'authorization_code',
-          client_id: provider.clientId,
-          client_secret: provider.clientSecret ? '[PRESENT]' : '[MISSING]',
-          code: code ? '[PRESENT]' : '[MISSING]',
-          redirect_uri: redirectUri,
-        }
-      });
-
+      console.log('Token exchange request received');
+      
+      // Exchange authorization code for access token
       const tokenResponse = await fetch(config.token_endpoint, {
         method: 'POST',
         headers: {
@@ -510,11 +502,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const tokens = await tokenResponse.json();
-      console.log('Token exchange successful:', {
-        access_token: tokens.access_token ? '[PRESENT]' : '[MISSING]',
-        token_type: tokens.token_type,
-        expires_in: tokens.expires_in
-      });
+      console.log('Token exchange successful');
 
       // Get user info
       console.log('Fetching user info from:', config.userinfo_endpoint);
@@ -535,12 +523,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       const userInfo = await userInfoResponse.json();
-      console.log('User info received:', {
-        sub: userInfo.sub,
-        email: userInfo.email,
-        preferred_username: userInfo.preferred_username,
-        name: userInfo.name
-      });
+      console.log('User info received successfully');
 
       // Find or create user
       console.log('Looking for existing user with oidcSub:', userInfo.sub);
@@ -550,8 +533,8 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
       if (!user && userInfo.email) {
         // Check if user exists by email (account linking)
-        console.log('No user found by oidcSub, checking by email:', userInfo.email);
-        user = await fastify.prisma.user.findUnique({
+        console.log('No user found by oidcSub, checking by email');
+        let user = await fastify.prisma.user.findUnique({
           where: { email: userInfo.email },
         });
 
@@ -580,12 +563,12 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
           password: null, // OIDC users don't have passwords
           identiconUrl: 'identicon', // Flag for identicon generation
         };
-        console.log('User data for creation:', userData);
+        console.log('User data prepared for creation');
         
         user = await fastify.prisma.user.create({
           data: userData,
         });
-        console.log('New user created:', { id: user.id, username: user.username });
+        console.log('New user created:', { id: user.id });
       } else if (user.oidcSub) {
         // Update existing OIDC user info
         console.log('Updating existing OIDC user:', user.id);
