@@ -1,11 +1,13 @@
+import tailwindcssAnimate from "tailwindcss-animate";
+import typography from "@tailwindcss/typography";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    './src/client/**/*.{ts,tsx}',
+    './src/client/**/*.{js,jsx}',
+    './src/client/**/*.html',
   ],
   prefix: "",
   theme: {
@@ -104,5 +106,5 @@ export default {
       }
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [tailwindcssAnimate, typography],
 }

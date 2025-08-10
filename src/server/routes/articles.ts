@@ -209,7 +209,7 @@ const articleRoutes: FastifyPluginAsync = async (fastify) => {
       };
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.code(400).send({ error: 'Invalid input', details: error.errors });
+        return reply.code(400).send({ error: 'Invalid input', details: error.issues });
       }
       throw error;
     }
@@ -295,7 +295,7 @@ const articleRoutes: FastifyPluginAsync = async (fastify) => {
       };
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.code(400).send({ error: 'Invalid input', details: error.errors });
+        return reply.code(400).send({ error: 'Invalid input', details: error.issues });
       }
       throw error;
     }
@@ -578,7 +578,7 @@ const articleRoutes: FastifyPluginAsync = async (fastify) => {
 
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.code(400).send({ error: 'Invalid input', details: error.errors });
+        return reply.code(400).send({ error: 'Invalid input', details: error.issues });
       }
       throw error;
     }

@@ -66,8 +66,8 @@ export class ContentExtractor {
         // Successful extraction
         title = article.title || this.extractTitle(document);
         author = article.byline || this.extractAuthor(document);
-        excerpt = article.excerpt || this.extractExcerpt(article.content);
-        content = article.content;
+        excerpt = article.excerpt || (article.content ? this.extractExcerpt(article.content) : undefined);
+        content = article.content || '';
       } else {
         // Fallback when Readability fails (e.g., video pages, single-page apps)
         title = this.extractTitle(document);

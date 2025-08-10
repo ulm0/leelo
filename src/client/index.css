@@ -74,17 +74,20 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer components {
   .article-content {
-    @apply prose prose-lg max-w-none;
+    max-width: none;
+    font-size: 1.125rem;
+    line-height: 1.75;
   }
 
   .article-content h1,
@@ -93,91 +96,142 @@
   .article-content h4,
   .article-content h5,
   .article-content h6 {
-    @apply text-foreground font-semibold mt-8 mb-4;
+    color: hsl(var(--foreground));
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
   }
 
   .article-content p {
-    @apply text-foreground mb-4 leading-relaxed;
+    color: hsl(var(--foreground));
+    margin-bottom: 1rem;
+    line-height: 1.625;
   }
 
   .article-content a {
-    @apply text-primary hover:text-primary/80 underline;
+    color: hsl(var(--primary));
+    text-decoration: underline;
+  }
+
+  .article-content a:hover {
+    color: hsl(var(--primary) / 0.8);
   }
 
   .article-content img {
-    @apply rounded-lg shadow-sm my-6 mx-auto max-w-full h-auto;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    margin: 1.5rem auto;
+    max-width: 100%;
+    height: auto;
   }
 
   .article-content blockquote {
-    @apply border-l-4 border-primary/30 pl-4 py-2 my-6 italic text-muted-foreground;
+    border-left: 4px solid hsl(var(--primary) / 0.3);
+    padding-left: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: hsl(var(--muted-foreground));
   }
 
   .article-content code {
-    @apply bg-muted px-1 py-0.5 rounded text-sm font-mono text-foreground;
+    background-color: hsl(var(--muted));
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    color: hsl(var(--foreground));
   }
 
   .article-content pre {
-    @apply bg-muted p-4 rounded-lg overflow-x-auto my-4 border;
+    background-color: hsl(var(--muted));
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    border: 1px solid hsl(var(--border));
   }
 
   .article-content pre code {
-    @apply bg-transparent p-0 text-foreground;
+    background-color: transparent;
+    padding: 0;
+    color: hsl(var(--foreground));
   }
 
   .article-content ul,
   .article-content ol {
-    @apply my-4 pl-6;
+    margin: 1rem 0;
+    padding-left: 1.5rem;
   }
 
   .article-content li {
-    @apply mb-2;
+    margin-bottom: 0.5rem;
   }
 
   .dark .article-content {
-    @apply prose-invert;
+    /* Dark mode styles */
   }
 
   /* Improved code block contrast for dark mode */
   .dark .article-content code {
-    @apply bg-gray-800 text-gray-100 border border-gray-700;
+    background-color: rgb(31 41 55);
+    color: rgb(243 244 246);
+    border: 1px solid rgb(55 65 81);
   }
 
   .dark .article-content pre {
-    @apply bg-gray-900 border-gray-700 text-gray-100;
+    background-color: rgb(17 24 39);
+    border-color: rgb(55 65 81);
+    color: rgb(243 244 246);
   }
 
   .dark .article-content pre code {
-    @apply bg-transparent border-0 text-gray-100;
+    background-color: transparent;
+    border: 0;
+    color: rgb(243 244 246);
   }
 
   /* Improved code block contrast for light mode */
   .light .article-content code {
-    @apply bg-gray-100 text-gray-900 border border-gray-200;
+    background-color: rgb(243 244 246);
+    color: rgb(17 24 39);
+    border: 1px solid rgb(229 231 235);
   }
 
   .light .article-content pre {
-    @apply bg-gray-50 border-gray-200 text-gray-900;
+    background-color: rgb(249 250 251);
+    border-color: rgb(229 231 235);
+    color: rgb(17 24 39);
   }
 
   .light .article-content pre code {
-    @apply bg-transparent border-0 text-gray-900;
+    background-color: transparent;
+    border: 0;
+    color: rgb(17 24 39);
   }
 
   .warm .article-content {
-    @apply prose-stone;
+    /* Warm mode styles */
   }
 
   /* Improved code block contrast for warm mode */
   .warm .article-content code {
-    @apply bg-amber-100 text-amber-900 border border-amber-300;
+    background-color: rgb(254 243 199);
+    color: rgb(120 53 15);
+    border: 1px solid rgb(253 230 138);
   }
 
   .warm .article-content pre {
-    @apply bg-amber-50 border-amber-300 text-amber-900;
+    background-color: rgb(255 251 235);
+    border-color: rgb(253 230 138);
+    color: rgb(120 53 15);
   }
 
   .warm .article-content pre code {
-    @apply bg-transparent border-0 text-amber-900;
+    background-color: transparent;
+    border: 0;
+    color: rgb(120 53 15);
   }
 
   /* Line clamp utilities */

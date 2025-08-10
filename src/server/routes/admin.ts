@@ -174,7 +174,7 @@ async function adminRoutes(fastify: FastifyInstance) {
       };
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.code(400).send({ error: 'Invalid input', details: error.errors });
+        return reply.code(400).send({ error: 'Invalid input', details: error.issues });
       }
       throw error;
     }
@@ -226,7 +226,7 @@ async function adminRoutes(fastify: FastifyInstance) {
       };
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.code(400).send({ error: 'Invalid input', details: error.errors });
+        return reply.code(400).send({ error: 'Invalid input', details: error.issues });
       }
       throw error;
     }
@@ -357,7 +357,7 @@ async function adminRoutes(fastify: FastifyInstance) {
       };
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.code(400).send({ error: 'Invalid input', details: error.errors });
+        return reply.code(400).send({ error: 'Invalid input', details: error.issues });
       }
       throw error;
     }
