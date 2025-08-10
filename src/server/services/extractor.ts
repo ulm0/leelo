@@ -55,13 +55,23 @@ export class ContentExtractor {
     // Use a more aggressive approach to ensure no HTML remains
     
     // First pass: remove complete tags and any content between them
-    sanitized = sanitized.replace(/<[^>]*>/g, '');
+    let previousSanitized;
+    do {
+      previousSanitized = sanitized;
+      sanitized = sanitized.replace(/<[^>]*>/g, '');
+    } while (sanitized !== previousSanitized);
     
     // Second pass: remove any remaining content that starts with <
-    sanitized = sanitized.replace(/<[^>]*/g, '');
+    do {
+      previousSanitized = sanitized;
+      sanitized = sanitized.replace(/<[^>]*/g, '');
+    } while (sanitized !== previousSanitized);
     
     // Third pass: remove any remaining content that ends with >
-    sanitized = sanitized.replace(/[^<]*>/g, '');
+    do {
+      previousSanitized = sanitized;
+      sanitized = sanitized.replace(/[^<]*>/g, '');
+    } while (sanitized !== previousSanitized);
     
     // Fourth pass: remove any remaining angle brackets completely
     sanitized = sanitized.replace(/[<>]/g, '');
@@ -171,8 +181,15 @@ export class ContentExtractor {
     
     // Step 5: Apply final cleanup to ensure no HTML-like content remains
     // Remove any remaining content that could be interpreted as HTML
-    sanitized = sanitized.replace(/<[^>]*/g, ''); // Remove any remaining <
-    sanitized = sanitized.replace(/[^<]*>/g, ''); // Remove any remaining >
+    // Repeat removal to ensure all HTML-like content is gone
+    do {
+      previousSanitized = sanitized;
+      sanitized = sanitized.replace(/<[^>]*/g, '');
+    } while (sanitized !== previousSanitized);
+    do {
+      previousSanitized = sanitized;
+      sanitized = sanitized.replace(/[^<]*>/g, '');
+    } while (sanitized !== previousSanitized);
     sanitized = sanitized.replace(/[<>]/g, ''); // Remove any remaining angle brackets
     
     // Step 6: Normalize whitespace and clean up
