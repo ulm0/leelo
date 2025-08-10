@@ -27,6 +27,20 @@ export class ContentExtractor {
   }
 
   /**
+   * Safely validates if a URL belongs to a specific domain
+   * This prevents subdomain attacks and ensures proper domain validation
+   */
+  private isExactDomain(url: string, domain: string): boolean {
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname.toLowerCase();
+      return hostname === domain || hostname.endsWith('.' + domain);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Safely sanitizes HTML content by removing all HTML tags and entities
    * This prevents HTML injection vulnerabilities
    */
@@ -412,9 +426,9 @@ export class ContentExtractor {
     }
     
     // Add a note about the content type
-    if (baseUrl?.includes('youtube.com') || baseUrl?.includes('youtu.be')) {
+    if (baseUrl && (this.isExactDomain(baseUrl, 'youtube.com') || this.isExactDomain(baseUrl, 'youtu.be'))) {
       content += `<p class="content-note"><strong>This is a YouTube video.</strong> Visit the link to watch the video.</p>`;
-    } else if (baseUrl?.includes('twitter.com') || baseUrl?.includes('x.com')) {
+    } else if (baseUrl && (this.isExactDomain(baseUrl, 'twitter.com') || this.isExactDomain(baseUrl, 'x.com'))) {
       content += `<p class="content-note"><strong>This is a social media post.</strong> Visit the link to see the full post and comments.</p>`;
     } else {
       content += `<p class="content-note"><strong>Content could not be extracted automatically.</strong> This might be a dynamic page, video, or other media. Visit the link to view the full content.</p>`;
