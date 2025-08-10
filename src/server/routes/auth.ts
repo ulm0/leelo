@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { TOTPService } from '../services/totp.js'
 import { PasskeyService } from '../services/passkey.js'
-
+import rateLimit from '@fastify/rate-limit';
 // Global type extension for OIDC state storage
 declare global {
   var oidcStates: Map<string, { providerId: string; timestamp: number }> | undefined;
@@ -25,6 +25,8 @@ const registerSchema = z.object({
 });
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
+  // Register rate limit plugin
+  await fastify.register(rateLimit);
   // Helper function to get base URL from system config or environment
   const getBaseUrl = async (request: any) => {
     const systemConfig = await fastify.prisma.systemConfig.findUnique({
