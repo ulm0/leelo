@@ -42,17 +42,29 @@ export class ContentExtractor {
 
   /**
    * Safely sanitizes HTML content by removing all HTML tags and entities
-   * This prevents HTML injection vulnerabilities
+   * This prevents HTML injection vulnerabilities including partial tags and malformed HTML
    */
   private sanitizeHtml(html: string): string {
     if (!html || typeof html !== 'string') {
       return '';
     }
     
-    // Remove HTML tags
-    let sanitized = html.replace(/<[^>]*>/g, '');
+    let sanitized = html;
     
-    // Decode common HTML entities
+    // Step 1: Remove all HTML-like content comprehensively
+    // First pass: remove complete tags
+    sanitized = sanitized.replace(/<[^>]*>/g, '');
+    
+    // Second pass: remove any remaining content that starts with <
+    sanitized = sanitized.replace(/<[^>]*/g, '');
+    
+    // Third pass: remove any remaining content that ends with >
+    sanitized = sanitized.replace(/[^<]*>/g, '');
+    
+    // Fourth pass: remove any remaining angle brackets
+    sanitized = sanitized.replace(/[<>]/g, '');
+    
+    // Step 2: Decode common HTML entities safely
     const htmlEntities: Record<string, string> = {
       '&amp;': '&',
       '&lt;': '<',
@@ -78,10 +90,16 @@ export class ContentExtractor {
       sanitized = sanitized.replace(new RegExp(entity, 'gi'), replacement);
     }
     
-    // Remove any remaining HTML entities (catch-all)
+    // Step 3: Remove any remaining HTML entities (catch-all)
     sanitized = sanitized.replace(/&#?[a-zA-Z0-9]+;/g, '');
     
-    // Normalize whitespace
+    // Step 4: Remove potentially dangerous protocols and patterns
+    sanitized = sanitized.replace(/javascript:/gi, ''); // Remove javascript: protocol
+    sanitized = sanitized.replace(/data:/gi, ''); // Remove data: protocol
+    sanitized = sanitized.replace(/vbscript:/gi, ''); // Remove vbscript: protocol
+    sanitized = sanitized.replace(/on\w+\s*=/gi, ''); // Remove event handlers like onclick=
+    
+    // Step 5: Normalize whitespace and clean up
     sanitized = sanitized.replace(/\s+/g, ' ').trim();
     
     return sanitized;
